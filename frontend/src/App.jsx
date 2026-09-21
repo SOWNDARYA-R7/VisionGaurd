@@ -119,7 +119,18 @@ function App() {
     riskMessage = "Potential infrastructure damage was detected.";
   }
  
-  
+  const getBoxColor = (label) => {
+  const colors = {
+    person: "#2563eb",
+    helmet: "#16a34a",
+    "fire extinguisher": "#dc2626",
+    crack: "#f59e0b",
+    "damaged pipe": "#9333ea",
+  };
+
+  return colors[label.toLowerCase()] || "#0891b2";
+};
+
   return (
     <div className="page">
       <div className="container">
@@ -182,31 +193,21 @@ function App() {
                       key={index}
                       className="bounding-box"
                       style={{
-                        left: `${
-                          (item.box[0] / imageDimensions.width) * 100
-                        }%`,
-
-                        top: `${
-                          (item.box[1] / imageDimensions.height) * 100
-                        }%`,
-
-                        width: `${
-                          ((item.box[2] - item.box[0]) /
-                            imageDimensions.width) *
-                          100
-                        }%`,
-
-                        height: `${
-                          ((item.box[3] - item.box[1]) /
-                            imageDimensions.height) *
-                          100
-                        }%`,
-                      }}
+                      left: `${(item.box[0] / imageDimensions.width) * 100}%`,
+                      top: `${(item.box[1] / imageDimensions.height) * 100}%`,
+                      width: `${((item.box[2] - item.box[0]) / imageDimensions.width) * 100}%`,
+                      height: `${((item.box[3] - item.box[1]) / imageDimensions.height) * 100}%`,
+                      borderColor: getBoxColor(item.label),
+                    }}
                     >
-                      <span className="box-label">
-                        {item.label}{" "}
-                        {(item.confidence * 100).toFixed(0)}%
-                      </span>
+                      <span className="box-label"
+                          style={{
+                            background: getBoxColor(item.label),
+                          }}
+                        >
+                          {item.label}{" "}
+                          {(item.confidence * 100).toFixed(0)}%
+                        </span>
                     </div>
                   ))}
 
@@ -214,6 +215,8 @@ function App() {
 
             </div>
           )}
+
+          
 
           {/* Detection Prompt */}
           <div className="input-group">
