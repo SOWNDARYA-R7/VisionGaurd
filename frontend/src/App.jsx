@@ -5,6 +5,12 @@ import "./App.css";
 function App() {
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
+
+  const [imageDimensions, setImageDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
+
   const [prompt, setPrompt] = useState("");
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -14,7 +20,21 @@ function App() {
 
     if (file) {
       setImage(file);
-      setPreview(URL.createObjectURL(file));
+
+      const objectUrl = URL.createObjectURL(file);
+      setPreview(objectUrl);
+
+      const img = new Image();
+
+      img.onload = () => {
+        setImageDimensions({
+          width: img.naturalWidth,
+          height: img.naturalHeight,
+        });
+      };
+
+      img.src = objectUrl;
+
       setResult(null);
     }
   };
@@ -26,6 +46,7 @@ function App() {
     }
 
     const formData = new FormData();
+
     formData.append("image", image);
     formData.append("prompt", prompt);
 
@@ -48,64 +69,57 @@ function App() {
 
   const detections = result?.detections || [];
 
-const objectCounts = {};
+  const objectCounts = {};
 
-detections.forEach((item) => {
-  const label = item.label.toLowerCase();
+  detections.forEach((item) => {
+    const label = item.label.toLowerCase();
 
-  objectCounts[label] = (objectCounts[label] || 0) + 1;
-});
+    objectCounts[label] = (objectCounts[label] || 0) + 1;
+  });
 
-const detectedLabels = Object.keys(objectCounts);
+  const detectedLabels = Object.keys(objectCounts);
 
-let riskTitle = "General Visual Inspection";
-let riskMessage = "Objects were detected successfully.";
-let riskLevel = "Informational";
+  let riskTitle = "General Visual Inspection";
+  let riskMessage = "Objects were detected successfully.";
+  let riskLevel = "Informational";
 
-if (
-  detectedLabels.includes("helmet") &&
-  detectedLabels.includes("person")
-) {
-  const persons = objectCounts["person"];
-  const helmets = objectCounts["helmet"];
+  if (
+    detectedLabels.includes("helmet") &&
+    detectedLabels.includes("person")
+  ) {
+    const persons = objectCounts["person"];
+    const helmets = objectCounts["helmet"];
 
-  const coverage = persons > 0
-    ? Math.round((helmets / persons) * 100)
-    : 0;
+    const coverage =
+      persons > 0 ? Math.round((helmets / persons) * 100) : 0;
 
-  if (coverage >= 80) {
-    riskLevel = "Low Risk";
-    riskMessage = `${coverage}% of detected persons have helmets.`;
-  } else if (coverage > 50) {
-    riskLevel = "Medium Risk";
-    riskMessage = `${coverage}% helmet coverage detected. Some persons may require attention.`;
-  } else {
-    riskLevel = "High Risk";
-    riskMessage = `Only ${coverage}% helmet coverage detected.`;
-  }
+    if (coverage >= 80) {
+      riskLevel = "Low Risk";
+      riskMessage = `${coverage}% of detected persons have helmets.`;
+    } else if (coverage > 50) {
+      riskLevel = "Medium Risk";
+      riskMessage = `${coverage}% helmet coverage detected. Some persons may require attention.`;
+    } else {
+      riskLevel = "High Risk";
+      riskMessage = `Only ${coverage}% helmet coverage detected.`;
+    }
 
-  riskTitle = "Workplace Safety Analysis";
-}
-
-else if (detectedLabels.includes("fire extinguisher")) {
-  riskTitle = "Fire Safety Analysis";
-
-  if (objectCounts["fire extinguisher"] > 0) {
+    riskTitle = "Workplace Safety Analysis";
+  } else if (detectedLabels.includes("fire extinguisher")) {
+    riskTitle = "Fire Safety Analysis";
     riskLevel = "Detected";
-    riskMessage = "A fire extinguisher was detected in the inspection image.";
+    riskMessage =
+      "A fire extinguisher was detected in the inspection image.";
+  } else if (
+    detectedLabels.includes("crack") ||
+    detectedLabels.includes("damaged pipe")
+  ) {
+    riskTitle = "Infrastructure Analysis";
+    riskLevel = "Attention Required";
+    riskMessage = "Potential infrastructure damage was detected.";
   }
-}
-
-else if (
-  detectedLabels.includes("crack") ||
-  detectedLabels.includes("damaged pipe")
-) {
-  riskTitle = "Infrastructure Analysis";
-  riskLevel = "Attention Required";
-  riskMessage = "Potential infrastructure damage was detected.";
-}
-
-
+ 
+  
   return (
     <div className="page">
       <div className="container">
@@ -114,6 +128,7 @@ else if (
         <header className="header">
           <div>
             <h1 className="title">🛡️ VisionGuard AI</h1>
+
             <p className="subtitle">
               Open-Vocabulary Visual Inspection Platform
             </p>
@@ -127,22 +142,29 @@ else if (
 
         {/* Inspection Card */}
         <div className="card">
+
           <h2>AI Visual Inspection</h2>
 
           <p className="description">
             Upload an image and describe what you want the AI to detect.
           </p>
 
+          {/* Upload Image */}
           <div className="input-group">
-            <label className="label">Upload Image</label>
+
+            <label className="label">
+              Upload Image
+            </label>
 
             <input
               type="file"
               accept="image/*"
               onChange={handleImageChange}
             />
+
           </div>
 
+          {/* Image Preview + Bounding Boxes */}
           {preview && (
             <div className="preview-container">
 
@@ -160,14 +182,30 @@ else if (
                       key={index}
                       className="bounding-box"
                       style={{
-                        left: `${(item.box[0] / image.naturalWidth) * 100}%`,
-                        top: `${(item.box[1] / image.naturalHeight) * 100}%`,
-                        width: `${((item.box[2] - item.box[0]) / image.naturalWidth) * 100}%`,
-                        height: `${((item.box[3] - item.box[1]) / image.naturalHeight) * 100}%`,
+                        left: `${
+                          (item.box[0] / imageDimensions.width) * 100
+                        }%`,
+
+                        top: `${
+                          (item.box[1] / imageDimensions.height) * 100
+                        }%`,
+
+                        width: `${
+                          ((item.box[2] - item.box[0]) /
+                            imageDimensions.width) *
+                          100
+                        }%`,
+
+                        height: `${
+                          ((item.box[3] - item.box[1]) /
+                            imageDimensions.height) *
+                          100
+                        }%`,
                       }}
                     >
                       <span className="box-label">
-                        {item.label} {(item.confidence * 100).toFixed(0)}%
+                        {item.label}{" "}
+                        {(item.confidence * 100).toFixed(0)}%
                       </span>
                     </div>
                   ))}
@@ -177,7 +215,9 @@ else if (
             </div>
           )}
 
+          {/* Detection Prompt */}
           <div className="input-group">
+
             <label className="label">
               Detection Prompt
             </label>
@@ -189,15 +229,20 @@ else if (
               placeholder="Example: helmet, person, fire extinguisher"
               className="text-input"
             />
+
           </div>
 
+          {/* Detect Button */}
           <button
             onClick={handleDetect}
             disabled={loading}
             className="detect-button"
           >
-            {loading ? "🔄 Analyzing..." : "🔍 Detect Objects"}
+            {loading
+              ? "🔄 Analyzing..."
+              : "🔍 Detect Objects"}
           </button>
+
         </div>
 
         {/* Results */}
@@ -210,44 +255,69 @@ else if (
             <div className="stats-container">
 
               <div className="stat-card">
+
                 <div className="stat-number">
                   {detections.length}
                 </div>
-                <div>Total Objects</div>
+
+                <div>
+                  Total Objects
+                </div>
+
               </div>
 
-              {Object.entries(objectCounts).map(([label, count]) => (
-                <div className="stat-card" key={label}>
-                  <div className="stat-number">
-                    {count}
-                  </div>
+              {Object.entries(objectCounts).map(
+                ([label, count]) => (
+                  <div
+                    className="stat-card"
+                    key={label}
+                  >
 
-                  <div style={{ textTransform: "capitalize" }}>
-                    {label}
+                    <div className="stat-number">
+                      {count}
+                    </div>
+
+                    <div
+                      style={{
+                        textTransform: "capitalize",
+                      }}
+                    >
+                      {label}
+                    </div>
+
                   </div>
-                </div>
-              ))}
+                )
+              )}
 
             </div>
 
             {/* Prompt */}
             <div className="prompt-box">
-              <strong>Detected Classes:</strong>{" "}
+
+              <strong>
+                Detected Classes:
+              </strong>{" "}
+
               {Array.isArray(result.prompt)
                 ? result.prompt.join(", ")
                 : result.prompt}
+
             </div>
 
             {/* Risk Analysis */}
             <div className="risk-card">
 
-              <h3>🛡️ {riskTitle}</h3>
+              <h3>
+                🛡️ {riskTitle}
+              </h3>
 
               <div className="risk-level">
                 {riskLevel}
               </div>
 
-              <p>{riskMessage}</p>
+              <p>
+                {riskMessage}
+              </p>
 
             </div>
 
@@ -255,34 +325,51 @@ else if (
             <div className="detection-grid">
 
               {detections.map((item, index) => (
-                <div className="detection-card" key={index}>
+
+                <div
+                  className="detection-card"
+                  key={index}
+                >
 
                   <div className="detection-header">
-                    <strong>{item.label}</strong>
+
+                    <strong>
+                      {item.label}
+                    </strong>
 
                     <span className="confidence">
                       {(item.confidence * 100).toFixed(0)}%
                     </span>
+
                   </div>
 
                   <div className="bar-background">
+
                     <div
                       className="bar"
                       style={{
                         width: `${item.confidence * 100}%`,
                       }}
                     ></div>
+
                   </div>
 
                   <p className="coordinates">
+
                     Bounding Box: [
+
                     {item.box
-                      .map((value) => Number(value).toFixed(0))
+                      .map((value) =>
+                        Number(value).toFixed(0)
+                      )
                       .join(", ")}
+
                     ]
+
                   </p>
 
                 </div>
+
               ))}
 
             </div>
