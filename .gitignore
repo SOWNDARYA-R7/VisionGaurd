@@ -7,3 +7,6 @@
 runs/
 *.jpg
 *.png
+
+__pycache__/
+*.pyc

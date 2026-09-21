@@ -14,6 +14,9 @@
     * python -c "from ultralytics import YOLO;
 * install YOLO-WORLD - model used(yolov*s-worldv2)
     * from ultralytics import YOLO; model=YOLO('yolov8s-worldv2.pt');
+* Install FastAPI + Uvicorn
+  comments:
+    * pip install fastapi uvicorn python-multipart
 
 ## Testing Yolo
 * images has to be uploaded in the directory
@@ -28,3 +31,6 @@ In Terminal:
 In directory:
   * New folders created as \runs\detect\predict
   * it contains the output image with bounding box.
+
+## Run Project
+  * In ai folder - written with FastApi --> uvicorn main:app --reload
