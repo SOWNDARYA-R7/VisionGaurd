@@ -27,6 +27,7 @@
   * npm create vite@latest frontend -- --template react
   * Install the frontend dependencies
     * npm install
+    * npm install axios
 
 
 ## Testing Yolo
@@ -45,3 +46,5 @@ In directory:
 
 ## Run Project
   * In ai folder - written with FastApi --> uvicorn main:app --reload
+  * In frontend folder - written with react --> npm run dev
+  

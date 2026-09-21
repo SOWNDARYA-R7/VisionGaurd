@@ -1,122 +1,213 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState } from "react";
+import axios from "axios";
+import "./App.css";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [prompt, setPrompt] = useState("");
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+
+    if (file) {
+      setImage(file);
+      setPreview(URL.createObjectURL(file));
+      setResult(null);
+    }
+  };
+
+  const handleDetect = async () => {
+    if (!image || !prompt.trim()) {
+      alert("Please upload an image and enter a detection prompt.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", image);
+    formData.append("prompt", prompt);
+
+    try {
+      setLoading(true);
+
+      const response = await axios.post(
+        "http://127.0.0.1:8000/detect",
+        formData
+      );
+
+      setResult(response.data);
+    } catch (error) {
+      console.error(error);
+      alert("Detection failed. Please check the AI server.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const detections = result?.detections || [];
+
+  const helmetCount = detections.filter(
+    (item) => item.label.toLowerCase() === "helmet"
+  ).length;
+
+  const personCount = detections.filter(
+    (item) => item.label.toLowerCase() === "person"
+  ).length;
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
+    <div className="page">
+      <div className="container">
+
+        {/* Header */}
+        <header className="header">
+          <div>
+            <h1 className="title">🛡️ VisionGuard AI</h1>
+            <p className="subtitle">
+              Open-Vocabulary Visual Inspection Platform
+            </p>
+          </div>
+
+          <div className="status">
+            <span className="status-dot"></span>
+            AI Model Online
+          </div>
+        </header>
+
+        {/* Inspection Card */}
+        <div className="card">
+          <h2>AI Visual Inspection</h2>
+
+          <p className="description">
+            Upload an image and describe what you want the AI to detect.
           </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
 
-      <div className="ticks"></div>
+          <div className="input-group">
+            <label className="label">Upload Image</label>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+            />
+          </div>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+          {preview && (
+            <div className="preview-container">
+              <img
+                src={preview}
+                alt="Preview"
+                className="preview"
+              />
+            </div>
+          )}
+
+          <div className="input-group">
+            <label className="label">
+              Detection Prompt
+            </label>
+
+            <input
+              type="text"
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
+              placeholder="Example: helmet, person, fire extinguisher"
+              className="text-input"
+            />
+          </div>
+
+          <button
+            onClick={handleDetect}
+            disabled={loading}
+            className="detect-button"
+          >
+            {loading ? "🔄 Analyzing..." : "🔍 Detect Objects"}
+          </button>
+        </div>
+
+        {/* Results */}
+        {result && (
+          <div className="results-section">
+
+            <h2>Detection Results</h2>
+
+            {/* Stats */}
+            <div className="stats-container">
+
+              <div className="stat-card">
+                <div className="stat-number">
+                  {detections.length}
+                </div>
+                <div>Total Objects</div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-number">
+                  {personCount}
+                </div>
+                <div>Persons</div>
+              </div>
+
+              <div className="stat-card">
+                <div className="stat-number">
+                  {helmetCount}
+                </div>
+                <div>Helmets</div>
+              </div>
+
+            </div>
+
+            {/* Prompt */}
+            <div className="prompt-box">
+              <strong>Detected Classes:</strong>{" "}
+              {Array.isArray(result.prompt)
+                ? result.prompt.join(", ")
+                : result.prompt}
+            </div>
+
+            {/* Detection Cards */}
+            <div className="detection-grid">
+
+              {detections.map((item, index) => (
+                <div className="detection-card" key={index}>
+
+                  <div className="detection-header">
+                    <strong>{item.label}</strong>
+
+                    <span className="confidence">
+                      {(item.confidence * 100).toFixed(0)}%
+                    </span>
+                  </div>
+
+                  <div className="bar-background">
+                    <div
+                      className="bar"
+                      style={{
+                        width: `${item.confidence * 100}%`,
+                      }}
+                    ></div>
+                  </div>
+
+                  <p className="coordinates">
+                    Bounding Box: [
+                    {item.box
+                      .map((value) => Number(value).toFixed(0))
+                      .join(", ")}
+                    ]
+                  </p>
+
+                </div>
+              ))}
+
+            </div>
+
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
 }
 
-export default App
+export default App;
