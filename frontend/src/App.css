@@ -242,3 +242,30 @@ body {
     font-size: 26px;
   }
 }
+
+.risk-card {
+  background: white;
+  margin-top: 20px;
+  padding: 22px;
+  border-radius: 12px;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+}
+
+.risk-card h3 {
+  margin-top: 0;
+  margin-bottom: 10px;
+}
+
+.risk-level {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 20px;
+  background: #eef2ff;
+  font-weight: bold;
+  margin-bottom: 10px;
+}
+
+.risk-card p {
+  margin-bottom: 0;
+  color: #666;
+}

@@ -48,13 +48,63 @@ function App() {
 
   const detections = result?.detections || [];
 
-  const helmetCount = detections.filter(
-    (item) => item.label.toLowerCase() === "helmet"
-  ).length;
+const objectCounts = {};
 
-  const personCount = detections.filter(
-    (item) => item.label.toLowerCase() === "person"
-  ).length;
+detections.forEach((item) => {
+  const label = item.label.toLowerCase();
+
+  objectCounts[label] = (objectCounts[label] || 0) + 1;
+});
+
+const detectedLabels = Object.keys(objectCounts);
+
+let riskTitle = "General Visual Inspection";
+let riskMessage = "Objects were detected successfully.";
+let riskLevel = "Informational";
+
+if (
+  detectedLabels.includes("helmet") &&
+  detectedLabels.includes("person")
+) {
+  const persons = objectCounts["person"];
+  const helmets = objectCounts["helmet"];
+
+  const coverage = persons > 0
+    ? Math.round((helmets / persons) * 100)
+    : 0;
+
+  if (coverage >= 80) {
+    riskLevel = "Low Risk";
+    riskMessage = `${coverage}% of detected persons have helmets.`;
+  } else if (coverage > 50) {
+    riskLevel = "Medium Risk";
+    riskMessage = `${coverage}% helmet coverage detected. Some persons may require attention.`;
+  } else {
+    riskLevel = "High Risk";
+    riskMessage = `Only ${coverage}% helmet coverage detected.`;
+  }
+
+  riskTitle = "Workplace Safety Analysis";
+}
+
+else if (detectedLabels.includes("fire extinguisher")) {
+  riskTitle = "Fire Safety Analysis";
+
+  if (objectCounts["fire extinguisher"] > 0) {
+    riskLevel = "Detected";
+    riskMessage = "A fire extinguisher was detected in the inspection image.";
+  }
+}
+
+else if (
+  detectedLabels.includes("crack") ||
+  detectedLabels.includes("damaged pipe")
+) {
+  riskTitle = "Infrastructure Analysis";
+  riskLevel = "Attention Required";
+  riskMessage = "Potential infrastructure damage was detected.";
+}
+
 
   return (
     <div className="page">
@@ -142,19 +192,17 @@ function App() {
                 <div>Total Objects</div>
               </div>
 
-              <div className="stat-card">
-                <div className="stat-number">
-                  {personCount}
-                </div>
-                <div>Persons</div>
-              </div>
+              {Object.entries(objectCounts).map(([label, count]) => (
+                <div className="stat-card" key={label}>
+                  <div className="stat-number">
+                    {count}
+                  </div>
 
-              <div className="stat-card">
-                <div className="stat-number">
-                  {helmetCount}
+                  <div style={{ textTransform: "capitalize" }}>
+                    {label}
+                  </div>
                 </div>
-                <div>Helmets</div>
-              </div>
+              ))}
 
             </div>
 
@@ -164,6 +212,19 @@ function App() {
               {Array.isArray(result.prompt)
                 ? result.prompt.join(", ")
                 : result.prompt}
+            </div>
+
+            {/* Risk Analysis */}
+            <div className="risk-card">
+
+              <h3>🛡️ {riskTitle}</h3>
+
+              <div className="risk-level">
+                {riskLevel}
+              </div>
+
+              <p>{riskMessage}</p>
+
             </div>
 
             {/* Detection Cards */}
