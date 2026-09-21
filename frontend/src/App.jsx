@@ -216,7 +216,36 @@ function App() {
             </div>
           )}
 
-          
+          {result && detections.length > 0 && (
+  <div className="object-legend">
+
+    <h3>Detected Objects</h3>
+
+    <div className="legend-items">
+      {Object.entries(objectCounts).map(([label, count]) => (
+        <div className="legend-item" key={label}>
+
+          <span
+            className="legend-color"
+            style={{
+              background: getBoxColor(label),
+            }}
+          ></span>
+
+          <span className="legend-label">
+            {label}
+          </span>
+
+          <span className="legend-count">
+            {count}
+          </span>
+
+        </div>
+      ))}
+    </div>
+
+  </div>
+)}
 
           {/* Detection Prompt */}
           <div className="input-group">
@@ -306,9 +335,36 @@ function App() {
                 : result.prompt}
 
             </div>
+  
+            {/* Inspection Summary */}
+<div className="inspection-summary">
+
+  <h3>📊 Inspection Summary</h3>
+
+  <div className="summary-grid">
+
+    <div className="summary-item">
+      <span>Objects Detected</span>
+      <strong>{detections.length}</strong>
+    </div>
+
+    <div className="summary-item">
+      <span>Classes Found</span>
+      <strong>{detectedLabels.length}</strong>
+    </div>
+
+    <div className="summary-item">
+      <span>Safety Status</span>
+      <strong>{riskLevel}</strong>
+    </div>
+
+  </div>
+
+</div>
 
             {/* Risk Analysis */}
             <div className="risk-card">
+
 
               <h3>
                 🛡️ {riskTitle}
