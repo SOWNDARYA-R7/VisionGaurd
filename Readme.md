@@ -9,3 +9,8 @@
   comment:
     * pip install ultralytics
     * yolo checks
+* import Yolo
+  comments:
+    * python -c "from ultralytics import YOLO;
+* install YOLO-WORLD - model used(yolov*s-worldv2)
+    * from ultralytics import YOLO; model=YOLO('yolov8s-worldv2.pt');
