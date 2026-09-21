@@ -145,11 +145,35 @@ else if (
 
           {preview && (
             <div className="preview-container">
-              <img
-                src={preview}
-                alt="Preview"
-                className="preview"
-              />
+
+              <div className="image-wrapper">
+
+                <img
+                  src={preview}
+                  alt="Preview"
+                  className="preview"
+                />
+
+                {result &&
+                  detections.map((item, index) => (
+                    <div
+                      key={index}
+                      className="bounding-box"
+                      style={{
+                        left: `${(item.box[0] / image.naturalWidth) * 100}%`,
+                        top: `${(item.box[1] / image.naturalHeight) * 100}%`,
+                        width: `${((item.box[2] - item.box[0]) / image.naturalWidth) * 100}%`,
+                        height: `${((item.box[3] - item.box[1]) / image.naturalHeight) * 100}%`,
+                      }}
+                    >
+                      <span className="box-label">
+                        {item.label} {(item.confidence * 100).toFixed(0)}%
+                      </span>
+                    </div>
+                  ))}
+
+              </div>
+
             </div>
           )}
 
