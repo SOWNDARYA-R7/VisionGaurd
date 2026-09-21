@@ -1,4 +1,9 @@
 /venv
+
 *.pt
 *.pth
 *.onnx
+
+runs/
+*.jpg
+*.png
